@@ -8,6 +8,13 @@ import json
 from store.models import Product
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
+###mpesa
+
+import requests
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+import base64
 
 
 def payments(request):
@@ -88,7 +95,7 @@ def place_order(request, total=0, quantity=0,):
     for cart_item in cart_items:
         total += (cart_item.product.price * cart_item.quantity)
         quantity += cart_item.quantity
-    tax = 200
+    tax = 35
     grand_total = total + tax
 
     if request.method == 'POST':
@@ -159,3 +166,98 @@ def order_complete(request):
         return render(request, 'orders/order_complete.html', context)
     except (Payment.DoesNotExist, Order.DoesNotExist):
         return redirect('home')
+    
+#mpesa integration
+
+
+# Safaricom API Credentials
+MPESA_CONSUMER_KEY = 'gmGAjd7HDIoyOHKJavOAgcy4HUWFl3SLzc70jJzB4JYAG0Q4'
+MPESA_CONSUMER_SECRET = 'pR1U2pgLoGuC5IDZqNHAOyJwfvjOJryA0JAeBlpn4X8NBvZDaQ4xiHWGHGLOj1bZ'
+MPESA_SHORTCODE = '174379'  # Example sandbox shortcode, use your production shortcode when live
+MPESA_PASSKEY = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
+
+
+@csrf_exempt
+def initiate_mpesa_payment(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        phone_number = data.get('phoneNumber')
+        order_id = data.get('orderID')
+
+        if not phone_number or not order_id:
+            return JsonResponse({'success': False, 'message': 'Invalid input'})
+
+        # Obtain M-Pesa access token
+        access_token = get_mpesa_access_token()
+
+        if not access_token:
+            return JsonResponse({'success': False, 'message': 'Failed to get access token'})
+
+        # Format the timestamp
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+
+        # Encode the password using Base64
+        password = base64.b64encode(f'{MPESA_SHORTCODE}{MPESA_PASSKEY}{timestamp}'.encode()).decode()
+
+        # M-Pesa API endpoint
+        url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'Content-Type': 'application/json'
+        }
+
+        payload = {
+            "BusinessShortCode": MPESA_SHORTCODE,
+            "Password": password,
+            "Timestamp": timestamp,
+            "TransactionType": "CustomerPayBillOnline",
+            "Amount": 1,  # Amount to charge (replace with actual amount)
+            "PartyA": phone_number,  # The phone number sending the money
+            "PartyB": MPESA_SHORTCODE,
+            "PhoneNumber": phone_number,
+            "CallBackURL": "https://your-domain.com/mpesa-callback/",  # Define your callback URL
+            "AccountReference": order_id,
+            "TransactionDesc": "Payment for Order #" + order_id
+        }
+
+        # Make the API call to Safaricom's M-Pesa Daraja
+        response = requests.post(url, headers=headers, json=payload)
+
+        if response.status_code == 200:
+            return JsonResponse({'success': True, 'order_number': order_id})
+        else:
+            return JsonResponse({'success': False, 'message': 'Payment initiation failed'})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+
+def get_mpesa_access_token():
+    """Function to get the M-Pesa access token"""
+    auth_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+    response = requests.get(auth_url, auth=(MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET))
+
+    if response.status_code == 200:
+        json_response = response.json()
+        return json_response['access_token']
+    return None
+
+
+@csrf_exempt
+def mpesa_callback(request):
+    if request.method == 'POST':
+        mpesa_response = json.loads(request.body)
+
+        # Extract the relevant details
+        result_code = mpesa_response['Body']['stkCallback']['ResultCode']
+        result_desc = mpesa_response['Body']['stkCallback']['ResultDesc']
+        mpesa_receipt_number = mpesa_response['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
+        transaction_amount = mpesa_response['Body']['stkCallback']['CallbackMetadata']['Item'][0]['Value']
+
+        # Save the payment info into your database
+        # Mark the order as paid, etc.
+
+        return JsonResponse({'status': 'success'})
+
+    return JsonResponse({'status': 'invalid request'})
+
+
