@@ -150,3 +150,18 @@ EMAIL_USE_TLS = True
 #DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+
+# Add these configurations at the end of your settings.py file
+MPESA_ENV = 'sandbox'  # Change to 'production' when you're ready for production
+MPESA_CONSUMER_KEY = 'gmGAjd7HDIoyOHKJavOAgcy4HUWFl3SLzc70jJzB4JYAG0Q4'
+MPESA_CONSUMER_SECRET = 'pR1U2pgLoGuC5IDZqNHAOyJwfvjOJryA0JAeBlpn4X8NBvZDaQ4xiHWGHGLOj1bZ'
+MPESA_SHORTCODE = '174379'  # Example sandbox shortcode, use your production shortcode when live
+MPESA_PASSKEY = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
+MPESA_CALLBACK_URL = 'https://yourdomain.com/payment_callback/'  # URL to handle M-Pesa responses
+
+# M-Pesa API URLs
+##########sending sms via twilio 
+
+TWILIO_ACCOUNT_SID = 'AC6e7a054c8f1b4079d2eb4599845e6743'
+TWILIO_AUTH_TOKEN = '83fec52bb1d3cf9d153ead1f41bfc266'
+TWILIO_PHONE_NUMBER = '+14793516196'

@@ -6,6 +6,8 @@ urlpatterns = [
     path('payments/', views.payments, name='payments'),
     path('order_complete/', views.order_complete, name='order_complete'),
 
-     path('initiate-mpesa-payment/', views.initiate_mpesa_payment, name='initiate_mpesa_payment'),
-    path('mpesa-callback/', views.mpesa_callback, name='mpesa_callback'),
+    path('orders/mpesa_payment/<int:order_id>/', views.mpesa_initiate_payment, name='mpesa_payment'),
+    path('orders/mpesa_payment_success/', views.mpesa_payment_success, name='mpesa_payment_success'),
+    path('orders/mpesa_payment_failed/', views.mpesa_payment_failed, name='mpesa_payment_failed'),
+   
 ]

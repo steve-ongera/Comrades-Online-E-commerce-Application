@@ -113,7 +113,7 @@
 							<img src="{% static './images/misc/mpesa.svg' %}" height="26">
 						</p>
 						<!-- mpesa pop up -->
-						<button class="btn btn-primary btn-block" type="button" onclick="handleMpesaPayment()">Pay with Mpesa</button>
+						<a href="{% url 'mpesa_payment' order.id %}" class="btn btn-primary btn-block">Pay with M-Pesa</a>
 						
                           <br>
 
@@ -136,41 +136,41 @@
 <!-- ========================= SECTION CONTENT END// ========================= -->
 
 
-
 <script>
-function handleMpesaPayment() {
-    let phoneNumber = prompt("Enter your Mpesa number:");
-    if (phoneNumber) {
-        // Replace with your backend endpoint to initiate Mpesa payment
-        fetch('/initiate-mpesa-payment/', {
-            method: "POST",
-            headers: {
-                "Content-type": "application/json",
-                "X-CSRFToken": csrftoken,
-            },
-            body: JSON.stringify({
-                orderID: orderID,
-                phoneNumber: phoneNumber,
-                payment_method: 'Mpesa'
-            }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Handle the response from the backend
-            if (data.success) {
-                alert("Payment successful");
-                window.location.href = redirect_url + '?order_number=' + data.order_number;
-            } else {
-                alert("Payment failed: " + data.message);
-            }
-        })
-        .catch(error => {
-            alert("An error occurred. Please try again.");
-            console.error("Error:", error);
-        });
-    }
-}
-</script>
+	function handleMpesaPayment() {
+		let phoneNumber = prompt("Enter your Mpesa number:");
+		if (phoneNumber) {
+			let amount = "{{ grand_total }}";  // Replace with the actual grand total
+			let orderID = "{{ order.order_number }}";
+	
+			fetch('/lipa-na-mpesa/', {
+				method: "POST",
+				headers: {
+					"Content-type": "application/json",
+					"X-CSRFToken": csrftoken,  // Ensure you have CSRF protection
+				},
+				body: JSON.stringify({
+					phoneNumber: phoneNumber,
+					orderID: orderID,
+					amount: amount
+				}),
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					alert("STK push sent to your phone. Please complete the payment.");
+				} else {
+					alert("Payment failed: " + data.message);
+				}
+			})
+			.catch(error => {
+				alert("An error occurred. Please try again.");
+				console.error("Error:", error);
+			});
+		}
+	}
+	</script>
+	
 
 
 

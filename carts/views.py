@@ -175,7 +175,7 @@ def cart(request, total=0, quantity=0, cart_items=None):
             quantity += cart_item.quantity
         
         #tax = (0.3 * total)/100
-        tax=200
+        tax=2
         
         grand_total = total + tax
     except ObjectDoesNotExist:
