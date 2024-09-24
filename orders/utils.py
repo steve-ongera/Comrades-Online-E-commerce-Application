@@ -3,7 +3,7 @@ from django.conf import settings
 from datetime import datetime
 import base64
 import logging
-from twilio.rest import Client
+
 logger = logging.getLogger(__name__)
 
 def get_mpesa_access_token():
@@ -53,17 +53,3 @@ def lipa_na_mpesa_online(phone_number, amount, account_reference, transaction_de
     return response.json()
 
 
-
-def send_sms(to, body):
-    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-    try:
-        message = client.messages.create(
-            body=body,
-            from_=settings.TWILIO_PHONE_NUMBER,
-            to=to
-        )
-        logger.info(f"SMS sent to {to}: {message.sid}")
-        return message.sid
-    except Exception as e:
-        logger.error(f"Failed to send SMS to {to}: {e}")
-        return None

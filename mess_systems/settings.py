@@ -160,8 +160,3 @@ MPESA_PASSKEY = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c91
 MPESA_CALLBACK_URL = 'https://yourdomain.com/payment_callback/'  # URL to handle M-Pesa responses
 
 # M-Pesa API URLs
-##########sending sms via twilio 
-
-TWILIO_ACCOUNT_SID = '***********'
-TWILIO_AUTH_TOKEN = '********'
-TWILIO_PHONE_NUMBER = '**********'

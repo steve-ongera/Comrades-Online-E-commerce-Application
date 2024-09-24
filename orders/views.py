@@ -170,7 +170,7 @@ def order_complete(request):
 #mpesa integration
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Order
-from .utils import lipa_na_mpesa_online, send_sms  # Assuming these are defined in utils.py
+from .utils import lipa_na_mpesa_online  # Assuming these are defined in utils.py
 
 def mpesa_initiate_payment(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -190,8 +190,8 @@ def mpesa_initiate_payment(request, order_id):
             order.save()
 
             # Optionally send an SMS to the user
-            sms_body = f"Thank you for your order! Your payment for Order {order.order_number} is pending."
-            send_sms(phone_number, sms_body)
+            #sms_body = f"Thank you for your order! Your payment for Order {order.order_number} is pending."
+            #send_sms(phone_number, sms_body)
 
             return redirect('mpesa_payment_success')
         else:
