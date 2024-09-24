@@ -6,7 +6,7 @@ from .models import Account
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-
+from .forms import *
 # Verification email
 from django.contrib.sites.shortcuts import get_current_site
 
@@ -22,8 +22,8 @@ from django.template.loader import render_to_string
 from carts.views import _cart_id
 from carts.models import Cart, CartItem
 import requests
-
-
+from django.shortcuts import render, get_object_or_404
+from orders.models import Order
 
 def register(request):
     if request.method == 'POST':
@@ -153,7 +153,13 @@ def activate(request, uidb64, token):
 
 @login_required(login_url = 'login')
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+    user = request.user
+    orders = Order.objects.filter(user=user, is_ordered=True).order_by('-created_at')  # Get all completed orders
+
+    context = {
+        'orders': orders,
+    }
+    return render(request, 'accounts/dashboard.html' , context)
 
 
 def forgotPassword(request):
@@ -216,3 +222,19 @@ def resetPassword(request):
             return redirect('resetPassword')
     else:
         return render(request, 'accounts/resetPassword.html')
+    
+
+
+@login_required
+def update_profile(request):
+    user = request.user  # Get the logged-in user
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()  # Save the updated user information
+            return redirect('dashboard')  # Redirect to a profile page or a success page
+    else:
+        form = UserProfileForm(instance=user)  # Pre-fill the form with the current user data
+
+    return render(request, 'accounts/update_profile.html', {'form': form})
